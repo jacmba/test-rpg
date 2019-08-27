@@ -6,6 +6,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public LayerMask mask;
+    public Interactable focus;
 
     private Camera cam;
     private PlayerMotor motor;
@@ -15,6 +16,7 @@ public class PlayerController : MonoBehaviour
     {
         cam = Camera.main;
         motor = GetComponent<PlayerMotor>();
+        focus = null;
     }
 
     // Update is called once per frame
@@ -38,8 +40,35 @@ public class PlayerController : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                Debug.Log("We hit " + hit.collider.name + " at " + hit.point);
+                Interactable interactable = hit.collider.gameObject.GetComponent<Interactable>();
+                if(interactable != null)
+                {
+                    SetFocus(interactable);
+                }
+                else if (focus != null)
+                {
+                    ClearFocus();
+                }
             }
         }
+    }
+
+    void SetFocus(Interactable focus)
+    {
+        if(this.focus != null)
+        {
+            ClearFocus();
+        }
+
+        focus.OnFocus(transform);
+        this.focus = focus;
+        motor.Follow(focus);
+    }
+
+    void ClearFocus()
+    {
+        focus.OnDefocus();
+        focus = null;
+        motor.StopFollowing();
     }
 }
